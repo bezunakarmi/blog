@@ -3,9 +3,14 @@ lock '3.4.0'
 
 # application name
 set :application, 'blog'
+set :branch,          ENV["branch"] || "master"
+set :user,            ENV["user"] || ENV["USER"] || "blog"
 
 # repo url to the project
 set :repo_url, 'https://github.com/shhetri/blog.git'
+
+require 'date'
+set :current_time, DateTime.now
 
 namespace :environment do
     desc "Set environment variables"
@@ -40,9 +45,24 @@ namespace :php5 do
     end
 end
 
+namespace :version do
+  desc 'Create ver.txt'
+      task :create do
+        on roles(:web) do
+        puts ("--> Creating ver.txt at base URL")
+            execute "cp #{release_path}/ver.txt #{release_path}/public"
+            execute "sed 's/%date%/#{fetch(:current_time)}/g
+            s/%branch%/#{fetch(:branch)}/g
+            s/%revision%/#{fetch(:current_revision)}/g
+            s/%deployed_by%/#{fetch(:user)}/g' #{release_path}/public/ver.txt"
+      end
+  end
+end
+
 namespace :deploy do
   after :updated, "composer:install"
   after :finished, "environment:set_variables"
+  after :finished, "version:create"
 end
 
 after "deploy",   "php5:restart"
