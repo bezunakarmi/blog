@@ -1,5 +1,5 @@
 # server ip address, username with which you ssh to your server and the roles assigned to this server
-server '192.168.10.10', user: 'vagrant', roles: %w{app db web}
+server '10.1.1.33', user: 'vagrant', roles: %w{app db web}
 
 # path to deploy the project
 set :deploy_to, '/home/vagrant/www/app/staging'
