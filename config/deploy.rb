@@ -1,28 +1,24 @@
 # config valid only for current version of Capistrano
 lock '3.5.0'
 
+# Load DSL and set up stages
+require 'capistrano/setup'
+
+# Include default deployment tasks
+require 'capistrano/deploy'
+
 # application name
+set :stages, ["staging", "production"]
+set :default_stage, "staging"
+
 set :application, 'blog'
 set :branch,          ENV["branch"] || "master"
-set :user,            ENV["user"] || ENV["USER"] || "blog"
 
 # repo url to the project
 set :repo_url, 'https://github.com/shhetri/blog.git'
 
 require 'date'
 set :current_time, DateTime.now
-
-namespace :environment do
-    desc "Set environment variables"
-    task :set_variables do
-        on roles(:app) do
-              puts ("--> Create enviroment configuration file")
-              execute "cat /dev/null > #{fetch(:app_path)}/.env"
-              execute "echo APP_DEBUG=#{fetch(:app_debug)} >> #{fetch(:app_path)}/.env"
-              execute "echo APP_KEY=#{fetch(:app_key)} >> #{fetch(:app_path)}/.env"
-        end
-    end
-end
 
 namespace :composer do
     desc "Running Composer Install"
@@ -45,24 +41,9 @@ namespace :php5 do
     end
 end
 
-namespace :version do
-  desc 'Create ver.txt'
-      task :create do
-        on roles(:web) do
-        puts ("--> Creating ver.txt at base URL")
-            execute "cp #{release_path}/ver.txt #{release_path}/public"
-            execute "sed 's/%date%/#{fetch(:current_time)}/g
-            s/%branch%/#{fetch(:branch)}/g
-            s/%revision%/#{fetch(:current_revision)}/g
-            s/%deployed_by%/#{fetch(:user)}/g' #{release_path}/public/ver.txt"
-      end
-  end
-end
 
 namespace :deploy do
   after :updated, "composer:install"
-  after :finished, "environment:set_variables"
-  after :finished, "version:create"
 end
 
 after "deploy",   "php5:restart"
