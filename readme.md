@@ -1,1 +1,1 @@
-## This is a demo project for testing deployment with capistrano
+## This is a demo project for testing deployment with Capistrano
